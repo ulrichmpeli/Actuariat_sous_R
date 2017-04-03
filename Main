@@ -91,3 +91,83 @@ quantile(data$Total, c(.95, .999))
 # Sélection des plus gros sinistres #
 
 data1 = data[data$Total>=34.823731,]
+
+# ------------------------------------------------------------------------------#
+# Estimation des paramètres des copules
+# ------------------------------------------------------------------------------#
+
+#== Mesures de dépendance ==#
+
+data2 = data[,c(2,3,4)]
+
+# corrélation de pearson#
+cor.pearson<-cor(data2, method = "pearson")
+cor.pearson
+xtable(cor.pearson)
+
+#corrélation de spearman#
+cor.spearman<-cor(data2, method = "spearman")
+cor.spearman
+xtable(cor.spearman)
+
+
+#corrélation de kendall#
+cor.kendall<-cor(data2, method = "kendall")
+cor.kendall
+xtable(cor.kendall)
+
+
+#== Dépendance de queues ==#
+
+Bulding<-pobs(data$Building, ties.method = "max")
+Contents<-pobs(data$Contents, ties.method = "max")
+Profits<-pobs(data$Profits, ties.method = "max")
+
+# dépendance de queue supérieure #
+plot(Bulding,Contents)
+plot(Bulding,Profits)
+plot(Contents,Profits)
+
+data3 = cbind(Bulding,Contents,Profits)
+
+lambda.l.true<-fitLambda(data3)
+lambda.u.true<-fitLambda(data3, lower.tail=FALSE)
+
+xtable(lambda.l.true)
+xtable(lambda.u.true)
+
+#== Estimation des paramètres ==#
+
+
+# Copule gaussienne #
+
+normal.cop <- normalCopula(c(0,0,0),dim=3,dispstr="un")
+(fit.ml.norm <- fitCopula(normal.cop, data3, method="ml"))
+(fit.mpl.norm <- fitCopula(normal.cop, data3, method="mpl"))
+(fit.itau.norm <- fitCopula(normal.cop, data3, method="itau"))
+(fit.irho.norm <- fitCopula(normal.cop, data3, method="irho"))
+
+# Copule de student #
+
+(t.cop <- tCopula(c(0,0,0),dim=3,dispstr="un"))
+fit.ml.t <- fitCopula(t.cop, data3, method="ml")
+summary(fit.ml.t)
+fit.mpl.t <- fitCopula(t.cop, data3, method="mpl") # la variance asymptotique ne peut pas être estimé
+summary(fit.mpl.t)
+(fit.itau.t <- fitCopula(t.cop, data3, method="itau")) # ne peut pas estimer df
+(fit.irho.t <- fitCopula(t.cop, data3, method="irho")) # ne peut pas estimer df
+fit.itau.mpl.t <- fitCopula(t.cop, data3, method="itau.mpl") #la variance asymptotique ne peut pas être estimé
+summary(fit.itau.mpl.t)
+
+# Copule de Gumbel #
+
+gumbel.cop <- gumbelCopula(dim=3)
+fit.ml.gumbel <- fitCopula(gumbel.cop, uvw, method="ml")
+summary(fit.ml.gumbel)
+(fit.mpl.gumbel <- fitCopula(gumbel.cop, uvw, method="mpl")) # la variance asymptotique ne peut pas être estimé
+fit.itau.gumbel <- fitCopula(gumbel.cop, uvw, method="itau") # ne peut pas estimer df
+summary(fit.itau.gumbel)
+fit.irho.gumbel <- fitCopula(gumbel.cop, uvw, method="irho") # ne peut pas estimer df
+summary(fit.irho.gumbel)
+
+
