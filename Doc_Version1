@@ -1,0 +1,1510 @@
+\documentclass[a4paper, 11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[francais]{babel}
+\usepackage{amssymb,amsmath}
+\usepackage{flexisym}
+\allowdisplaybreaks
+\usepackage{mathrsfs}
+\usepackage{color}
+\usepackage[x11names]{xcolor}
+\usepackage{graphicx}
+\usepackage{caption} 
+\usepackage{calc}
+\usepackage{framed}
+\usepackage{float} 
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{array}
+
+\newenvironment{bottompar}{\par\vspace*{\fill}}{\clearpage}
+
+\usepackage[left=2.5cm,top=2.5cm,right=2.5cm,bottom=2.5cm,bindingoffset=0cm]{geometry}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\renewcommand{\footrulewidth}{0.5pt}
+\fancyhead[R]{Actuariat sous \texttt{R}}
+\fancyhead[L]{}
+\fancyfoot[R]{ENSAE}
+\fancyfoot[L]{2016-2017}
+
+\newcommand{\thedate}{\today}
+
+%\setlength\parindent{0em}
+%\usepackage{hyperref} %pour utiliser les hyperliens 
+\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+
+%pour gérer les bords des tableaux
+\usepackage{mdframed} 
+\newmdenv[topline = true, rightline = false, bottomline = true, leftline = false]{topbox}
+
+% indicatrice \mathbbm{1}
+\usepackage{bbm} 
+
+% faire un tableau avec largeur fixe
+\usepackage{array}
+\newcolumntype{M}[1]{>{\arraybackslash}m{#1}}
+\newcolumntype{N}[1]{>{\centering\arraybackslash}m{#1}}
+
+%pour rajouter du code R
+\usepackage{listings}
+%\usepackage{xcolor}
+\usepackage{listingsutf8}\usepackage[T1]{fontenc}
+\lstset{ %
+  language=R,                     % the language of the code
+  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  numbers=left,                   % where to put the line-numbers
+  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line will be numbered
+    numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+ % frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))  
+tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=false,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+   %title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                                 % also try caption instead of title
+  keywordstyle=\color{blue},      % keyword style
+  commentstyle=\color{black!50!green},   % comment style
+  stringstyle=\color{black!50!red},      % string literal style
+  %escapeinside={\%*}{*)},         % if you want to add a comment within your code
+  morekeywords={*,...},            % if you want to add more keywords to the set
+  otherkeywords={!,!=,~,\$,*,\%in\%,\%, \/, \&,\%/\%,\%*\%,\%\%,<-,<<-, NaN, type, TRUE, FALSE, lty, paste0},
+  deletekeywords={C, D, I}
+ } 
+ 
+ % pour encadrer les résultats
+\usepackage{fancybox} 
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+
+\hspace{12cm}
+\includegraphics[scale=1]{logo_ensae.jpg}
+
+\vspace{1cm}
+
+\begin{Large}
+\textsc{Actuariat sous \texttt{R}} \\
+%\textsc{Projet 3}
+\end{Large}
+
+\today
+  
+\vspace{1cm}
+\rule{285pt}{2pt}
+\vspace{0.5cm}
+
+\begin{Huge}
+Tarification des contrats multi-garanties
+\end{Huge}
+
+\vspace{0.5cm}
+\rule{285pt}{2pt}
+
+
+\vspace{1cm}
+
+\begin{Large}
+François \textsc{TCHANGAÏ} \\ 
+Ulrich \textsc{MPELI}
+\end{Large}
+
+\vspace{1.5cm}
+
+\begin{Large}
+\textsc{Enseignant :}
+C \textsc{Dutang}
+\end{Large}
+
+\vspace{1cm}
+
+
+ 
+\thispagestyle{empty}
+
+\vspace{1.5cm}
+
+\begin{tabular}{M{15.5cm}}
+\hline
+\textbf{Résumé}: \\
+
+
+
+
+\textbf{Mots clés : } \\
+\hline
+\end{tabular}
+\end{center}
+
+\end{titlepage}
+
+\newpage
+\pagenumbering{roman}
+
+\tableofcontents
+
+\newpage
+\pagenumbering{arabic}
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+Un contrat d'assurance peut être définit comme un contrat par lequel un souscripteur se fait promettre une prestation au cas où un sinistre pouvait arriver moyennant le paiement d'un prix appelé « prime ». L'avènement de la nouvelle directive européenne, Solvabilité II, fait de l’amélioration des méthodes de tarification une préoccupation majeure des
+compagnies d’assurances. 
+
+
+
+Une tarification prudente et réaliste doit s’intéresser alors aux structures de dépendances et étudier l’impact des queues de distributions et des événements extrêmes.
+
+
+
+Depuis quelques années, la tarification s’oriente vers l’étude d’outils permettant de
+mieux expliquer et d'appréhender... La théorie des copules est un outil puissant permettant de modéliser les dépendances extrêmes.
+
+\section{Notions mathématiques de base : Les copules}
+
+\subsection{Définitions et propriétés}
+
+\subsubsection{Définitions}
+Une copule est une fonction de répartition dont les marges sont uniformes \cite{sklar}. \\
+C'est un outil mathématique qui permet d’isoler et de caractériser la structure de dépendance entre plusieurs variables aléatoires; elle permet de distinguer les comportements
+des distributions marginales de la structure de dépendance. On peut donc ainsi modéliser une loi multivariée avec une structure de dépendance
+propre à une loi usuelle avec des comportements marginaux distincts de cette distribution, en dissociant dépendance et comportement marginal \cite{nel}. \\
+
+Une copule C de dimension k s'écrie:
+$$
+C(t_1, ..., t_k) = \mathbb{P}(T_1\leq t_1, ..., T_k\leq t_k)
+$$
+Où $(t_1, ..., t_k) \in [0,1]^k$ et $T_i \rightsquigarrow \mathcal{U}[0,1]  $
+
+
+
+\subsubsection{Propriétés des copules}
+Une copule de dimension k est une fonction C : $[0,1]^k \rightarrow [0,1] $ telle que, $\forall i \in (1, ..., k)$, $t_i \in [0,1]$ :
+\begin{itemize}
+\item[$\bullet$] $C(1, ..., 1, t_i, 1, ..., 1) = t_i$ 
+\item[$\bullet$]  $C(t_1,...,t_{i-1},0,t_{i+1},...,t_k) = 0$
+\item[$\bullet$] C est k-increasing : $\sum_{t_i \in (\alpha_i, \beta_i)} (-1)^{card(i,t_i=\alpha_i)}C(t_1, ..., t_k) \geq 0$ 
+\end{itemize}
+
+\paragraph{Théorème de Sklar\\}
+
+Ce théorème est fondamental dans la théorie des copules, et d’établir le lien que forme la fonction copule entre la loi jointe et les lois marginales. Il s'énonce ainsi qu'il suit :\\
+Soient $(T_1, ..., T_k)$ un vecteur aléatoire de fonction de répartition F et $F_{T_1}, ...,F_{T_k}$
+les fonctions de répartions marginales des variables $T_1, ..., T_k$, alors F admet une représentation
+copule :
+$$
+F(t_1, ..., t_k) = C(F_{T_1}(t_1), ..., F_{T_k}(t_k))
+$$
+La fonction copule C est unique si les lois marginales sont continues.\\
+Si les lois marginales sont continues, alors :
+$C(t_1, ..., t_k) = F(F_{T_1}^{-1}(t_1), ..., F_{T_k}^{-1}(t_k)) $
+
+\paragraph{Théorème d'invariance\\}
+
+Les copules sont invariantes par changement d’échelle. En effet, pour des fonctions
+continues strictement croissantes $\Phi_1, ..., \Phi_k$ de R dans R les distributions des vecteurs aléatoires
+$(T_1, ..., T_k)$ et $(\Phi_1(T_1),..., \Phi_k(T_k))$ peuvent être caractérisées par la même copule C.
+
+\paragraph{Densité\\}
+Lorsqu'une copule admet une densité par rapport à la mesure de Lebesgue sur $[0\,,\, 1]^k$, on la définit par :
+\begin{equation*}
+c(t_1, ..., t_k)=\frac{\partial^kC(t_1, ..., t_k)}{\partial t_1....\partial t_k}
+\end{equation*}
+
+
+
+
+
+
+\subsection{Exemples de Copules trivariées}
+
+Dans notre étude, $k=3$.
+
+\subsubsection{Les Copules archimediennes}
+
+Soit $\phi$ une fonction définie de $[0\,, \, 1]$ dans $\mathbb{R}^+$, continue, strictement décroissante et telle que $\phi(1)=0$ et $\phi(0)=+\infty$.
+
+Une copule trivariée archimédienne de générateur $\phi$ est définie par \cite{gen}:
+
+$$
+\left\{
+    \begin{array}{lllll}
+        C(t_1, t_2 ,t_3) & = & \phi^{-1}(\phi(t_1)+\phi(t_2)+\phi(t_3)) & si & \sum_{i=1}^3\phi(t_i) \leq \phi(0) \\
+        C(t_1, t_2,t_3) & = & 0 & sinon
+    \end{array}
+\right.
+$$
+
+%$$
+%\left\{
+%    \begin{array}{lllll}
+  %      C(t_1,.......,t_k) & = %& \phi^{-1}(\phi(t_1),.....,\phi(t_k)) & si & \sum_{i=1}^k\phi(t_i) \leq \phi(0) \\
+    %    C(t_1,.......,t_k) & = %& 0 & sinon
+%    \end{array}
+%\right.
+%$$
+Cette famille de copule archimédienne regroupe un
+certain nombre de copules que nous présentons ci-dessous.
+
+\paragraph{La Copule de Franck \\}
+Cette copule permet de modéliser les dépendances aussi bien positives que négatives, mais ne présente pas de dépendance de queue \footnote{Dans le cas de deux variables $X_1$ et $X_2$, la dépendance de queue est la probabilité que $X_1$ soit extrême sachant que $X_2$ est extrême.}. Elle a pour générateur :
+$$
+\phi(t) = -\log\left(\dfrac{e^{-\alpha t}-1}{e^{-\alpha }-1} \right)
+$$
+Avec $\alpha \ne 0$ et t $\in ]0,1]$\\
+La forme trivariée de la copule de Franck s’écrie :
+$$
+C(t_1, t_2, t_3) = -\dfrac{1}{\alpha}\log\left[1 + \dfrac{1}{(e^{-\alpha }-1)^{3-1}}\prod_{i=1}^3 (e^{-\alpha t_i}-1) \right]
+$$
+%\paragraph{La Copule de Cook-Johnson\\}
+%Encore appelée copule de Kimeldorf-Sampson ou copule de Clayton, la copule de Cook-Johnson est une copule archimediennes dont le générateur est : 
+%$$
+%\phi(t) = \dfrac{1}{\alpha}(t^{-\alpha} - 1)
+%$$
+%Cette copule présente une dépendance de queue inférieure; %asymptotique sur les valeurs négatives;
+%elle s'écrie :
+%$$
+%C(t_1, t_2, t_3) = \left(1 - 3 + \sum_{i=1}^3 t_i^{-\alpha} \right)^{-\dfrac{1}{\alpha}}
+%$$
+%Avec $\alpha > 0$ et t $\in ]0,1]$
+
+\paragraph{La Copule de Gumbel\\}\label{Gumbel}
+Cette copule permet d'appréhender les dépendances positives et possède la caractéristique de pouvoir représenter des risques dont la structure de dépendance est plus accentuée sur la queue supérieure. Elle est à ce titre particulièrement adaptée en assurance  pour étudier l’impact de la survenance d’événements de forte intensité sur la dépendance entre branches. Elle a pour générateur : 
+
+$$
+\phi(t) = (-\log t)^\alpha
+$$
+Avec $\alpha > 1$ et t $\in ]0,1]$\\
+La copule de Gumbel s'écrie donc :
+$$
+C(t_1, t_2, t_3) = \exp \left[-[\sum_{i=1}^3 (-\log t_i)^\alpha]^{\dfrac{1}{\alpha}}  \right]
+$$
+
+\paragraph{La Copule de Clayton\\}
+
+Elle a pour générateur $\phi(t)=t^{-\alpha}-1$ et s'écrit donc :
+\begin{equation*}
+C(t_1, t_2, t_3)=\left(\sum^3_{i=1}t_i^{-\alpha}-3+1\right)^{-1/\alpha}
+\end{equation*}
+
+Elle présente de la dépendance dans la queue inférieure.
+
+\subsubsection{Les Copules elliptiques}
+Une copule est dite elliptique si elle est la copule d’une loi elliptique. Nous considérons ici deux cas particuliers, la copule gaussienne et
+la copule de Student.
+\paragraph{La Copule gaussienne\\}
+Cette copule n’est pas adaptée pour modéliser une dépendance non linéaire ou entre évènements extrêmes, car elle ne présente pas de dépendance de queue. Son utilité réside dans le fait que son utilisation pour la modélisation de la mesure de la dépendance d'un échantillon est cohérente avec la mesure de cette dépendance par le coefficient de corrélation linéaire. \\
+Sa distribution trivariée %3-dimesionnelle
+est donnée par : 
+$$
+C(t_1, t_2,t_3) =  \Phi_\Sigma(\Phi^{-1}(t_1), \Phi^{-1}(t_2),\Phi^{-1}(t_3))
+$$
+$(t_1, t_2,t_3) \in [0,1]^3$\\
+
+$\Phi$ est la fonction de répartition d'une normale centrée-réduite et,$\Phi_{\Sigma}$  est la fonction de répartion d'un vecteur gaussien de matrice de corrélation $\Sigma$.
+%$\Phi^{-1}$ est l'inverse généralisé de la distribution normale centrée-réduite et $\Sigma$ est la matrice de variance-covariance.
+La densité de $\Phi_\Sigma$ s'écrie :
+$$
+\phi_\Sigma(u) = \dfrac{exp(-\dfrac{1}{2}u\Sigma^{-1}u')}{(2\pi)^{\frac{k}{2}}det(\Sigma)^{\frac{1}{2}}}
+$$
+$u = (u_1, u_2, u_3) \in \mathcal{R}^3$. Ainsi, si on dérive la copule gaussienne, on obtient sa densité :
+$$
+c(t_1, t_3, t_3) = \dfrac{1}{det(\Sigma)^{\frac{1}{2}}}exp\left( -\dfrac{1}{2}\beta(\Sigma^{-1} - I_3)\beta' \right)
+$$
+$I_3$ est la matrice unité de $\mathcal{M}_3(\mathcal{R})$ et $\beta = \left( \Phi^{-1}(t_1), \Phi^{-1}(t_3), \Phi^{-1}(t_3)\right)$.
+
+\paragraph{La Copule de Student\\}
+
+Elle est construite de la même manière que la copule gaussienne, mais avec la distribution de student centrée-réduite. Elle est définie par : 
+\begin{equation*}
+C_{\nu, \Sigma}=\tau_{\nu,\Sigma}\left(\tau_{\nu}^{-1}(t_1), \tau_{\nu}^{-1}(t_2),\tau_{\nu}^{-1} (t_3)\right))
+\end{equation*}
+
+où $\tau_{\nu}$ est la fonction de répartition d'une Student centrée-réduite à $\nu$ degrés de liberté et $\tau_{\nu, \Sigma}$ la fonction de répartition multivariée centrée, de matrice $\Sigma$ et de $\nu$ degrés de liberté.
+
+
+Sa fonction de densité est donnée par :
+$$
+c(t_1, t_2,t_3) = \dfrac{f_{\nu,\Sigma}\left(g_\nu^{-1}(t_1), g_\nu^{-1}(t_2),g_\nu^{-1}(t_3) \right)}{\prod_{i=1}^3f_\nu\left(g_{\nu}^{-1}(t_i)\right)}
+$$
+avec $f_{\nu, \Sigma}$ la fonction de densité d'une loi de student multivariée centrée de matrice $\Sigma$ et de $\nu$ degrés de liberté
+%$g_\nu^{-1}$ est l'inverse généralisé de la distribution univariée de student centrée-réduite à $\nu$ degrés de libertés, de densité $f$.
+
+\subsubsection{Les Copules aux valeurs extrêmes}
+
+%On appelle copule aux valeurs extrêmes toute copule vérifiant :
+Une copule est de valeurs extrêmes si et seulement si elle est max-stable, c'est à dire que pour tout $r>0$, elle vérifie la propriété : 
+\begin{equation*}
+C(t_1, t_3, t_3)=C^r\left(t_1^{\frac{1}{r}}, t_2^{\frac{1}{r}}, t_3^{\frac{1}{r}}\right)
+\end{equation*}
+
+%$$
+%\left\{
+ %   \begin{array}{lll}
+  %      C(u^t,v^t) & = &  C^t(u,v) \\
+   %     ou& & \\
+ %       C^{\frac{1}{t}}(u^t,v^t) & = & C(u,v)
+  %  \end{array}
+%\right.
+%$$
+
+La copule de Gumbel \ref{Gumbel} est la seule copule qui appartient à la fois à la famille de
+copules archimédiennes et à la famille de copules de valeurs extrêmes.\\
+%Le tableau ci-dessous présente la description bivariée de quelques copules de valeurs extrêmes.
+%\textbf{On doit parler des copules trivariés. Je pense on pourrait mettre ça en annexe}
+ 
+%\begin{displaymath}
+%  \begin{array}{lc}
+%\hline
+% \textbf{Familles} & \textbf{Expressions}\\
+%\hline
+%\hline
+ % Galambos & c(t_1,t_2) = \prod_{i=1}^2t_i exp\left[\sum_{i=1}^2(\log\dfrac{1}{t_i})^{-\theta}\right]^{-\frac{1}{\theta}}\\
+%\hline
+%Husler-Reiss & c(t_1,t_2) = exp\left[\log t_2 \Phi [\dfrac{1}{\theta} + \dfrac{1}{2}\theta \log\dfrac{t_2}{t_1}] + \log t_1 \Phi [\dfrac{1}{\theta} + \dfrac{1}{2}\theta \log\dfrac{t_1}{t_2}]  \right]\\
+%\hline
+%Marchal-Olkin & c(t_1,t_2) = t_1^{1-\alpha}t_2^{1-\beta}min(t_1^{\alpha},t_2^{\beta})\\
+%\hline
+%  \end{array}
+%\end{displaymath}
+%$\Phi$ est la fonction de répartition de la loi normale centrée réduite.
+
+\section{Présentation et exploration des données}
+
+\subsection{Source et description des données}
+
+Les données soumises à notre étude ont été fournies par une compagnie de réassurance danoise. Ces données représentent les montants des sinistres liés aux contrats comprenant les garanties \og Building \fg, \og Contents \fg  et  \og Profits \fg, et survenus entre le 03 Janvier 1980 et le 31 Décembre 1990. La base contient 2167 observations relatives aux pertes d'incendie exprimées en millions de couronnes danoises et ayant activées (éventuellement) les 3 garanties du contrat. Les montants ont été ajustés en fonction de l'inflation pour tenir compte des valeurs de 1985.%La base contient 2167 lignes qui correspondent à des sinistre incendies. La valeur des pertes a été traitée de l'inflation durant les 10 années, et est exprimée en millions de couronnes danoise. Les pertes des contrats sont divisées en 3 garanties : 
+%\begin{itemize}
+%\item la garantie sur les bâtiments
+%\item la garantie sur les biens
+%\item la garantie sur les pertes d'exploitations
+%\end{itemize}
+\medskip
+
+Le montant total des sinistres survenus sur la période d'étude est de 7,335 milliards de couronnes danoises. L'année 1989 est celle qui a été la plus coûteuse, mais le plus gros montant moyen des sinistres a été observé en 1980.
+\begin{table}[H] \centering
+ \caption{Répartition du nombre et du montant des sinistres par année de survenance}
+  \label{rep1} 
+\begin{tabular}{lcccccccccccc}
+\\[-4.8ex]\hline 
+\textbf{Année} & \textbf{1980} & \textbf{1981} & \textbf{1982} &\textbf{1983}& \textbf{1984} & \textbf{1985} & \textbf{1986} &\textbf{1987}& \textbf{1988} & \textbf{1989} &\textbf{1990}&\textbf{Total}\\
+\hline
+\hline
+\textbf{Nombre} & 166  & 170 & 181 & 153& 163  & 207 & 238 & 226& 210 &235 & 218  &2167 \\
+\hline
+\textbf{Montant} & 870  & 627 & 599 & 400& 437  & 659 & 609 & 678& 794 &904 & 758  & 7335\\
+\hline
+\end{tabular}
+\end{table}
+
+Une analyse suivant les différentes garanties montre que la garantie \og Building \fg est celle qui a été la plus coûteuse (avec un coût total d'environ 3,9 milliards de couronnes danoises); c'est d'ailleurs elle qui a été le plus activée. En effet, la variable fréquence du tableau ci-dessous montre cette garantie a été activée pour un peu plus de 9 sinistres sur 10.
+
+\begin{table}[H] \centering
+ \caption{Description des garanties}
+  \label{rep2} 
+\begin{tabular}{lccccccc}
+\\[-4.8ex]\hline 
+ & \textbf{Min} & \textbf{Moyenne} & \textbf{Max} & \textbf{Total} &\textbf{quantile à 99,5\%}& \textbf{quantile à 99,9\%} & \textbf{Fréquence(\%)}\\
+\hline
+\hline
+\textbf{Building} & 0  & 1,8 & 152,4 & 3953& 14,7  & 40,1 & 91,8  \\
+\hline
+\textbf{Contents} & 0  & 1,3 & 132 & 2857& 17,9  & 52,5 & 77,5  \\
+\hline
+\textbf{Profits} & 0  & 0,2 & 61,9 & 525& 7  & 13,81 & 28,43 \\
+\hline
+\end{tabular}
+\end{table}
+
+
+%\begin{table}[H] \centering
+% \caption{Statistiques descriptives}
+%  \label{Var} 
+%\begin{tabular}{N{3cm} N{3cm} M{3cm} N{3cm} N{3cm}}
+%\\[-4.8ex]\hline 
+%\textbf{Statistique} & \textbf{Garantie sur les bâtiments} & \textbf{Garanties sur les biens} & \textbf{Garantie sur les pertes d'exploitations} &\textbf{Sinistres totales}\\
+%\hline
+%\hline
+%\textbf{Maximum} & 152,4  & 132,0 & 61,9 & 263.3\\
+%\hline
+%\textbf{Minimum} &0   &0  & 0& 1\\
+%\hline
+%\textbf{Moyenne} & 1,8 & 1,3
+% & 0,2 & 3,4
+%\\
+%\hline
+%\textbf{Écart type} &4,4 &4,7 & 1,6 & 8,5 \\
+%\hline
+%\textbf{quantile à 95\%} & 4,5 & 4,5 & 0,9& 10.0 \\
+%\hline
+%\textbf{quantile à 99,9\%} & 40,1 & 52,5 & 13,8& 131,6 \\
+%\hline
+%\textbf{\% de sinistres non nuls dans la garantie} & 91,45\% & 77,48\% & 28,42\%& 100\%\\
+
+%\hline
+%\end{tabular}
+%\end{table}
+
+%On remarque que la garantie couvrant les bâtiments est la plus touchée. La garantit sur les pertes d'exploitations est la moins touchée.  Par
+L'étude des quantiles d'ordre élevés met en évidence la présence d'événements extrêmes qui touchent très sévèrement les différentes garanties. Nous nous attelerons donc à modéliser correctement la sévérité pour prendre en compte ce type de sinistres. 
+
+%\subsection{Visualisation des données}
+
+
+\subsection{Analyse des queues de distribution}
+
+L'analyse des queues de distribution revient à s'intéresser aux plus gros sinistres.Les plus petits sinistres sont écartés de l’analyse car ils sont considérés comme non représentatifs de la sinistralité extrême  possiblement impactant la tarification.
+Le tableau ci-après présente par ordre croissant de sévérité les 11 sinistres dont les pertes totales sont les plus importantes, c'est à dire à dire  ceux au delà du quantile à 99,5\%. Trois sinistres se démarquent, avec des pertes totales supérieures à 140 millions de couronnes danoises. 
+
+\medskip
+
+% latex table generated in R 3.3.2 by xtable 1.8-2 package
+% Wed Mar 08 10:09:19 2017
+\begin{table}[ht]
+\centering
+\caption{Présentation des queues de distribution}
+\begin{tabular}{rrrrr}
+\\[-4.8ex]
+  \hline
+  Date & Building & Contents & Profits & Total \\ 
+  \hline
+  \hline
+ 1988-03-25 & 7,1 & 17,8 & 13,3 & 38,2 \\ 
+   1989-02-14 & 7,0 & 33,6 & 1,5 & 42,1 \\ 
+   1985-03-04 & 4,0 & 32,5 & 10,0 & 46,5 \\ 
+   1988-08-12 & 34,6 & 9,2 & 3,2 & 47,0 \\ 
+   1981-12-21 & 2,9 & 47,2 & 0,0 & 50,1 \\ 
+   1981-05-29 & 2,6 & 53,6 & 0,0 & 56,2 \\ 
+   1985-08-23 & 41,2 & 15,6 & 0,6 & 57,4 \\ 
+   1982-10-24 & 14,6 & 45,2 & 5,95 & 65,71 \\ 
+  1990-10-08  & 11,7 & 132,0 & 0,9 & 144,7 \\ 
+   1989-08-04 & 152,4 & 0,0 & 0,0 & 152,4 \\ 
+   1980-07-15 & 95,2 & 106,2 & 61,9 & 263,3 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+Une autre caractéristique remarquable des sinistres de la queue de distribution, est le fait que pour ces importants sinistres, toutes les garanties soient activées, à l'exception de 3 sinistres: Cela laisse suggérer l'existence de dépendance de queue. %La garantie bâtiments est systématiquement touchée.
+
+
+
+\section{Cadre pratique de l'étude}
+\textbf{Ajouter un chapeau}
+
+\subsection{Estimation des paramètres des copules}
+
+\subsubsection{Brêve présentation des méthodes d'estimation}
+Dans cette section, on détaille les différentes étapes nécessaires pour calibrer la copule modélisant la loi jointe de la charge de sinistres des 3 différentes garanties. 
+
+\subsubsection{Application aux données}
+
+\section{Modélisation de la sévérité de la charge sinistre des différentes garanties : modélisation des marges}
+
+\subsection{Fonction de répartition}
+
+Les 3 garanties ne sont pas touchée à chaque sinistres et présentent donc chacune de nombreux zéro \ref{rep2}. On va donc modéliser la loi de sévérité d'une garantie par la somme d'une masse en zéro et loi de sévérité $F_1$. Ainsi pour une Garantie $j$, sa fonction de répartition s'écrit  $F_j=p+(1-p)F_1$%$f$ d'une garantie $X$ par la somme d'une loi de sévérité classique $f_1$ et d'une masse de Dirac en 0 : $f(x)=pf_1(x)+(1-p)\delta_0$,
+, où $p$ représente la probabilité que la garantie ne soit pas touchée. D'après le tableau \ref{rep2}, en prenant la moyenne empirique comme estimateur, on a  $\widehat{p}_b=0,0855$ pour la garanties des bâtiments,  $\widehat{p}_c=0,2252$ pour la garantie des biens, $\widehat{p}_p=0,7148$ pour la garantie des pertes d'exploitation. 
+On va donc calibrer les lois de sévérité sur les sinistres strictement positifs pour la garantie, puis ajuster pour prendre en compte la masse en zéro. 
+
+Cependant, comme nous l'avions déjà évoqués, les différentes garanties présentent des événements de sévérités extrêmes. La calibration de lois de sévérité classiques pour modéliser les montants de pertes des différentes garanties, sous-estimerait la survenance de type de sinistres. En utilisant le théorie des valeurs extrêmes, on décide donc de considérer arbitrairement qu'au delà du quantile des pertes à 95$\%$, les pertes sont extrêmes et peuvent donc être modélisées par une loi GPD (generalized Pareto distribution). Le quantile à $99,5\%$ a été choisit pour avoir à la fois suffisamment de données pour la calibration, et dans le même temps, être assez élevé pour que les sinistres suivent bien une GPD.
+
+Finalement la fonction de répartition d'une garantie $j$ s'écrit donc : 
+\[F_j(x) = \left\{ 
+\begin{array}{l ll}
+  p_j & \quad \text{$x$=0 }\\
+  p_j+(1-p_j-0,05)*F_1(x) & \quad \text{ $0< x < q_{0,95}$ }\\ 
+  0,95+ 0,05*F_2(x) & \quad \text{$x \geq q_{0,95}$ }\\\end{array} \right. \]
+
+où $p_j$ est la probabilité que la garantie ne soit pas touchée, $F_1$ est la fonction de répartition d"une loi de sévérité classique, $F_2$ la fonction de repartition d'une GPD, et $q_{0.95}$ le quantile des pertes de la garantie à $95\%$.
+
+
+\subsection{Garantie des bâtiments}
+
+\subsubsection{Calibration de la loi des sinistres attritionnels}
+
+Les sinistres attritionnels sont tels que leurs montants sont strictement positifs et strictement inférieur au quantile à $95\%$.
+On trace le graphique de Cullen-Fray, qui permet de comparer la coefficient de dissymétrie et le kurtosis des données, à ceux de différentes distributions. Celui ci indique que la loi semble appartenir à la famille Beta transformée \footnote{Christophe Dutang,
+Vincent Goulet,
+Mathieu Pigeon, \textit{actuar: An R Package for Actuarial Science}, Journal of Statistical Software, March 2008, Volume 25, Issue 7.}.  \ref{cullen_frey_x}.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{cullen_frey_x.png}
+\caption{Graphique de Cullen frey pour la garantie des bâtiments}
+\label{cullen_frey_x}
+\end{center}
+\end{figure}
+
+On va calibrer la loi Beta transformée, la loi de Burr, la loi Loglogistic, la loi Paralogistic, la loi de Pareto, la loi de Pareto généralisé, la loi inverse Burr, la loi inverse Pareto et la loi inverse Paralogistic par maximum de vraisemblance. 
+
+On effectue le test de Kolmogorov–Smirnov. En notant $F_n$ la fonction de répartition empirique et $F$ la fonction de répartition calibrée,  la statistique de test s'écrit $\underset{x }{\sup}|F_n(x)-F(x)|$. Sous l'hypothèse nulle $H_0$ que les données soient distribuées selon $F$, on a  $\sqrt{n} D_n \underset{n\to \infty }{\longrightarrow} \underset{t }{\sup}|B(F(t))|$ où $B$ est un pont Brownien. 
+
+Le niveau de rejet est de $5\%$.
+ 
+\begin{table}[ht!]
+\caption{Test KS}
+\centering
+\begin{tabular}{N{0.3cm}N{1cm}N{1.7cm}N{1.7cm}N{1.8cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.3cm}N{1.5cm}}
+  \hline
+ &Beta transformée & Burr&Log-logistique&Para-logistique&Pareto&Pareto généralisé&inverse Burr&inverse Pareto &inverse Paralogistique \\ 
+  \hline
+ $H_0$ & rejeté&         rejeté        & non rejeté&         rejeté & rejeté &        rejeté      &   rejeté         &rejeté & rejeté      \\ 
+ 
+   \hline
+\end{tabular}
+\end{table}
+
+\medskip
+
+On décide donc de conserver la calibration de la loi Loglogistique  :
+
+\medskip
+
+\begin{table}[ht!]
+\caption{Paramètres de la loi Loglogistique}
+\centering
+\begin{tabular}{rr}
+  \hline
+  paramètre de forme   & paramètre d'échelle \\ 
+  \hline
+ 3,110647 &1,304435  \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{calib_x.png}
+\caption{Modélisation de la loi de sévérité des sinistres attritionnels de la garantie des bâtiments par une loi Loglogistique}
+\label{calib.x}
+\end{center}
+\end{figure}
+
+\subsubsection{Calibration de la loi des sinistres extrêmes}
+
+Le Pareto-plot à l'allure d'une droite en échelle log-log ce qui indique que les sinistres au delà du quantile à 95\% semble suivre une loi de Pareto généralisée.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{tail_hill_x.png}
+\caption{Pareto-plot pour la queue de distribution des sinistres de la garantie des bâtiments}
+\label{tail.x}
+\end{center}
+\end{figure}
+
+
+On rappelle que la loi de pareto généralisée a pour fonction de répartition \footnote{voir Smith (1987) }:
+
+
+
+\[G_{\xi, \beta}(x) = \left\{ 
+\begin{array}{l ll}
+  1-\left(1+\frac{\xi(x-\mu)}{\beta}\right)^{-1/\xi} & \quad \text{$\xi\ne 0$ }\\
+  1-\exp\left(-\frac{x-\mu}{\beta}\right) & \quad \text{ $\xi=0$ }\\ 
+ \end{array} \right. \]
+
+où dans notre cas, $\mu$ est la quantile à 95\%. La calibration par maximum de vraisemblance nous donne les paramètres suivants :
+\begin{table}[ht!]
+\caption{Paramètres de la loi GPD pour les sinistres extrêmes de la garantie des bâtiments}
+\centering
+\begin{tabular}{rrr}
+  \hline
+  $\xi$ & $\beta$ &  $\mu$ \\ 
+  \hline
+0,6127313 &2,2465217    & 4,550698 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+Le paramètre $\xi$ semble peut affecter par le seuil $\mu$ (voir figure \ref{hill_plot_x}), ce qui nous conforte dans notre choix du quantile à 95\%.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{hill_plot_x.png}
+\caption{Estimateur de Hill de $\xi$ pour différents seuils $\mu$}
+\label{hill_plot_x}
+\end{center}
+\end{figure}
+
+\medskip
+
+\subsubsection{Fonction de répartition}
+
+\medskip
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{fonction_repart_x.png}
+\caption{Comparaison de la fonction de répartition en empirique et la fonction de répartition paramétrique calibrée pour les sinistres de la garantie des bâtiments}
+\label{function_repart_x}
+\end{center}
+\end{figure}
+
+\medskip
+
+
+\subsection{Garantie des biens}
+
+\medskip
+
+\subsubsection{Calibration de la loi des sinistres attritionnels}
+
+\medskip
+
+On reprend la même démarche que précédemment. La graphe de Cullen-Frey nous indique de choisir une loi appartenant à une loi de la famille Béta transformée. 
+
+\medskip
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{cullen_frey_y.png}
+\caption{Graphique de Cullen frey pour la garantie des biens}
+\label{cullen_frey_y}
+\end{center}
+\end{figure}
+
+\medskip
+
+\begin{table}[ht!]
+\caption{Test KS}
+\centering
+\begin{tabular}{N{0.5cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.5cm}}
+  \hline
+ &Beta transformée & Burr&Loglogistic&Paralogistic&Pareto&Pareto généralisé&inverse Burr&inverse Pareto &inverse Paralogistic \\ 
+  \hline
+ $H_0$ & rejeté&          rejeté        & rejeté&         rejeté & rejeté &        rejeté      &   rejeté         &rejeté & rejeté      \\ 
+   \hline
+ BIC & 2729,821 &           2762,885&           2772,701           &2757,853 & 2801,999  &2741,971   &       2779,440   &        2952,983           &2790.301 
+ \\
+ \hline
+\end{tabular}
+\end{table}
+
+\medskip
+
+Toutes les loi sont rejeté par le test KS au seuil $5\%$. On utilise donc le critère de l'information BIC, et 
+on décide de conserver la calibration de la loi transformée Béta.
+
+\medskip
+
+\begin{table}[ht!]
+\caption{Paramètres de la loi Béta transformée}
+\centering
+\begin{tabular}{rrrr}
+  \hline
+  paramètre de forme 1 &paramètre de forme 2 & paramètre de forme 3& paramètre d'échelle \\ 
+  \hline
+161,012094  &  0,375899    &6,914667 &2827,528502  \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\medskip
+
+\subsubsection{Calibration de la loi des sinistres extrêmes}
+
+\medskip
+
+\begin{table}[ht!]
+\caption{Paramètres de la loi GPD pour les sinistres extrêmes de la garantie des biens}
+\centering
+\begin{tabular}{rrr}
+  \hline
+  $\xi$ & $\beta$ &  $\mu$ \\ 
+  \hline
+0,3936695 &5,2399479 & 4,450264\\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Fonction de répartition finale}
+
+Le graphique montre que la fonction de répartition obtenus par notre calibration se superpose très bien avec la fonction de répartition empirique.
+
+
+\medskip
+
+\subsubsection{Fonction de répartition}
+
+\medskip
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{fonction_repart_y.png}
+\caption{Comparaison de la fonction de répartition en empirique et la fonction de répartition paramétrique calibrée pour les sinistres de la garantie des biens}
+\label{function_repart_y}
+\end{center}
+\end{figure}
+
+\medskip
+
+
+\subsection{Garantie sur les pertes d'exploitation}
+
+\subsubsection{Calibration de la loi des sinistres attritionnels}
+
+On reprend la même démarche 
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{cullen_frey_z.png}
+\caption{Graphique de Cullen frey pour la garantie des pertes d'exploitations}
+\label{cullen_frey_z}
+\end{center}
+\end{figure}
+
+
+\begin{table}[ht!]
+\caption{Test KS et BIC}
+\centering
+\begin{tabular}{N{0.5cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.5cm}N{1.5cm}}
+  \hline
+ &Beta transformée & Burr&Loglogistic&Paralogistic&Pareto&Pareto généralisé&inverse Burr&inverse Pareto &inverse Paralogistic \\ 
+  \hline
+ $H_0$ & non rejeté&        rejeté        &  rejeté&         rejeté &  rejeté &        rejeté      &   rejeté         & rejeté &  rejeté      \\ 
+
+   \hline
+\end{tabular}
+\end{table}
+
+
+ On retient la calibration de la loi béta transformée.
+
+\begin{table}[ht!]
+\caption{Paramètres de la loi béta transformée}
+\centering
+\begin{tabular}{rrrr}
+  \hline
+  paramètre de forme 1 & paramètre de forme 2 & paramètre de forme 3 & paramètre d'échelle \\ 
+  \hline
+1587,703223  &  1,135437    &1,017147 & 189,748338   \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Calibration de la loi des sinistres extrêmes}
+
+
+
+\begin{table}[ht!]
+\caption{Paramètres de la loi GPD pour les sinistres extrêmes de la garantie des pertes d'exploitation}
+\centering
+\begin{tabular}{rrr}
+  \hline
+  $\xi$ & $\beta$ &  $\mu$ \\ 
+  \hline
+0,7121839 &0,9887574 & 0,9497 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\medskip
+
+\subsubsection{Fonction de répartition}
+
+\medskip
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{fonction_repart_z.png}
+\caption{Comparaison de la fonction de répartition en empirique et la fonction de répartition paramétrique calibrée pour les sinistres de la garantie des pertes d'exploitations}
+\label{function_repart_z}
+\end{center}
+\end{figure}
+
+\medskip
+
+
+\section{Calibration des copules}
+
+Dans cette section, on détaille les différentes étapes nécessaires pour calibrer la copule modélisant la loi jointe de la charge de sinistres des 3 différentes garanties. 
+
+
+
+
+\subsection{Concepts complémentaires et méthodes de calibration}
+
+\subsubsection{Mesure de la dépendance}
+
+Avant d'explicité les différentes méthodes de calibration, il parait important de détailler différentes mesures de dépendance qui seront utilisées par la suite. On note $X$ et $Y$ deux variables aléatoires ayant respectivement pour fonction de répartition $F$ et $G$, et tells que $(X,Y)$ a pour copule $C$.
+
+\underline{La corrélation linéaire}
+
+C'est la mesure la plus connue, définie par : 
+\begin{equation*}
+\rho(X,Y)=\frac{Cov(X,Y)}{\sigma(X)\sigma(Y)}
+\end{equation*}
+
+Elle présente cependant de nombreux inconvénient. On en cite une liste non exhaustive : 
+\begin{itemize}
+\item $\rho(X,Y)=0$ n'implique pas que $X$ et $Y$ soient indépendantes
+\item On ne peut pas calculer la corrélation linéaire de tout copule de variable aléatoire : il faut notamment que leur moments d'ordre 2 soient finis
+\item $\rho(X,Y)\in [-1\,,\,1]$
+\item Pour $\phi$ croissante, $\rho(X,Y)\ne\rho(\phi(X), \phi(Y))$
+\end{itemize}
+
+\medskip
+
+Une alternative es d'utilisé le rho de Speaman et le tau de Kendall. Ces deux mesures ont les propriétés d'être comprises entre $-1$ et $1$, d'être symétriques, d'être nulles si et seulement si $X$ est indépendant de $Y$, de ne dépendre que de la copule $C$ de $(X,Y)$, et d'être invariant si les mêmes pour $(\phi(X), \phi(Y))$ avec $\phi$ croissant.
+
+\underline{Le rho de Spearman}\label{rho_s} est défini par :
+\begin{equation*}
+\rho_S(X,Y)=\rho(F(X), G(Y))
+\end{equation*}
+Il est lié à la copule $C$ par :
+\begin{equation}
+\rho_S(X,Y)=12\int_{[0\,,\,1]^2}\left( C(u,v)-uv\right)\mathrm{d}u\mathrm{d}v  
+\end{equation}
+
+\underline{Le tau de Kendall}\label{tau_K} est défini par : 
+\begin{equation*}
+\tau(X,Y)=\mathbb{P}\left((X_1-X_2)(Y_1-Y_2)>0\right)-\mathbb{P}\left((X_1-X_2)(Y_1-Y_2)<0\right)
+\end{equation*}
+où $(X_1, Y_2)$ et $(X_2, Y_2)$ sont deux versions indépendantes de $(X, Y)$. Le tau de Kendall est lié à la copule $C$ par 
+\begin{equation*}
+\tau(X,Y)=4\int_{[0\,,\,1]^2} C(u,v)C( \, \mathrm{d}u, \mathrm{d}v )-1
+\end{equation*}
+
+
+Les tableaux suivant donnent les mesures de corrélations explicitées, pour les sévérités des 3 garanties. Le tau de Kendall et le rho de Spearman font apparaître de la dépendance négative entre les bâtiments et les garanties exploitation, et entre les garanties bâtiments et bien, qui n'apparaissait pas avec le rho de Pearson.
+% latex table generated in R 3.3.2 by xtable 1.8-2 package
+% Fri Mar 10 19:49:53 2017
+\begin{table}[ht!]
+\caption{Mesures de dépendance}
+\centering
+\begin{tabular}{l|ccc|ccc|ccc}
+\\[-4.8ex]
+  \hline
+  &\multicolumn{3}{c|}{rho de Pearson}& \multicolumn{3}{c|}{rho de Spearman} &\multicolumn{3}{c}{tau de Kendall}\\
+  \hline
+ & bâtiment & bien & exploit & bâtiment & bien & exploit & bâtiment & bien & exploit \\ 
+  \hline
+  bâtiment &1.00  & 0.33 & 0.55& 1,00 & -0,21 & -0,08& 1,00 & -0,17 & -0,06 \\
+ bien& 0.33 & 1.00 & 0.43& -0,21 & 1,00 & 0,35& -0.17 & 1,00 & 0,28 \\  
+  exploitation & 0.43 & 0.55 & 1.00& -0,08 & 0,35 & 1,00& -0,06 & 0,28 & 1,00 \\ 
+   \hline
+\end{tabular}
+*exploit = exploitation
+\end{table}
+
+% latex table generated in R 3.3.2 by xtable 1.8-2 package
+% Fri Mar 10 19:54:02 2017
+%\begin{table}[ht!]
+%\caption{rho de Spearman}
+%\centering
+%\begin{tabular}{rrrr}
+%  \hline
+%  & bâtiments & biens & exploitation \\ 
+%  \hline
+% bâtiments& 1,00 & -0,21 & -0,08 \\ 
+%  biens & -0,21 & 1,00 & 0,35 \\ 
+%  exploitation & -0,08 & 0,35 & 1,00 \\ 
+%   \hline
+%\end{tabular}
+%\end{table}
+
+% latex table generated in R 3.3.2 by xtable 1.8-2 package
+% Fri Mar 10 19:56:16 2017
+%\begin{table}[ht!]
+%\caption{tau de Kendall}
+%\centering
+%\begin{tabular}{rrrr}
+%  \hline
+% & bâtiments & biens & exploitation \\ 
+%  \hline
+%bâtiments & 1,00 & -0,17 & -0,06 \\ 
+%  biens & -0.17 & 1,00 & 0,28 \\ 
+%  exploitation & -0,06 & 0,28 & 1,00 \\ 
+%   \hline
+%\end{tabular}
+%\end{table}
+
+\subsubsection{Dépendance de queues}
+
+Nous avions déjà évoqué ce concept. Pour deux variables aléatoire $X$ et $Y$, elle caractérise la probabilité que Y soit extrême sachant que X est extrême. On distingue le coefficient de queue supérieur du coefficient de queue inférieur. Plus formellement, on les définit par :
+\begin{align*}
+\lambda_U(X, Y)=\lim_{t\to 1^-} \mathbb{P}\left(Y>F_Y^{-1}(t) \,|\,X>F_X^{-1}(t)\right)\\
+\lambda_L(X, Y)=\lim_{t\to 0^+} \mathbb{P}\left(Y\leq F_Y^{-1}(t) \,|\,X\leq F_X^{-1}(t)\right)
+\end{align*}
+
+Pour visualiser ces dépendances de queues, ainsi que l'allure de la copule, on peut peut tracer le dépendogramme entre les différentes garanties, c'est à dire que pour un couple de sinistres de deux garanties $(x_i, y_i)$,  on calcul $\left(F_X(x_i), F_Y(y_i)\right)$ qu'on évalue par $\left(\frac{\operatorname{rang}(x_i)}{n}, \frac{\operatorname{rang}(x_i)}{n} \right)$. 
+
+\medskip
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{depend_xy.png}
+\caption{Dependogramme entre  les sinistres de la garantie des bâtiments et celle des biens}
+\label{depend_xy}
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{depend_xy.png}
+\caption{Dependogramme entre  les sinistres de la garantie des bâtiments et celle des pertes d'exploitations}
+\label{depend_xz}
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{depend_xy.png}
+\caption{Dependogramme entre  les sinistres de la garantie des biens et celle des pertes d'exploitations}
+\label{depend_yz}
+\end{center}
+\end{figure}
+\medskip
+Les dépendogramme montrent un resserrement autour de la diagonale au coin supérieur droit, ce qui est caractéristique de la dépendance de queue supérieure. De plus, la répartition ne prend pas une forme symétrique, ce qui exclurait les copules elliptiques. 
+
+On peut estimer ces différents coefficients \footnote{voir Schmid, F., Schmidt, R. (2007). Multivariate conditional versions of Spearman's rho and related measures of tail dependence. Journal of Multivariate Analysis 98, 1123–1140} à l'aide de la copule empirique, définie par $\widehat{C}_n(u)=\frac{1}{n}\sum^n_{i=1} \prod^3_{j=1} \mathrm{1}_{U_{i,j}\leq u_i}$ où $U_{i,j}=\widehat{F}(x_{j,i})$, avec $\widehat{F}$ la fonction de répartition empirique de la variable aléatoire $X_j$.
+
+On obtient les coefficients de queues suivants \label{dep_queue} : 
+
+% latex table generated in R 3.3.2 by xtable 1.8-2 package
+% Fri Mar 10 21:13:47 2017
+\begin{table}[ht!]
+\caption{Coefficients de queues }
+\centering
+\begin{tabular}{l|ccc|ccc}
+\\[-4.8ex]
+  \hline
+  & \multicolumn{3}{c|}{Queues inférieures} &\multicolumn{3}{c}{Queues supérieures}\\
+  \hline
+ & bâtiments & biens & exploitation & bâtiments & biens & exploitation \\ 
+  \hline
+bâtiments & 1,00 & 0,00 & 0,00& 1,00 & 0,31 & 0,26 \\ 
+  biens & 0,00 & 1,00 & 0,00 & 0,31 & 1,00 & 0,50\\ 
+  exploitation & 0,00 & 0,00 & 1,00& 0,26 & 0,50 & 1,00 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+% latex table generated in R 3.3.2 by xtable 1.8-2 package
+% Fri Mar 10 21:36:35 2017
+%\begin{table}[ht!]
+%\caption{Coefficients de queues supérieurs}
+%\centering
+%\begin{tabular}{rrrr}
+%  \hline
+%  & bâtiments & biens & exploitation \\ 
+%  \hline
+%bâtiments & 1,00 & 0,31 & 0,26 \\ 
+%  biens & 0,31 & 1,00 & 0,50 \\ 
+%  exploitation & 0,26 & 0,50 & 1,00 \\ 
+%   \hline
+%\end{tabular}
+%\end{table}
+
+Il n'y a donc pas de dépendance de queue inférieur, mais il y a de la dépendance de queue supérieur. 
+
+\subsubsection{Explication des différentes méthodes de calibration}
+
+Il existe principalement 4 méthodes de calibration de copules\footnote{voir \textit{Computational Actuarial Science with R} d'Arthur CHARPENTIER, page 116}. Nous pouvons les regrouper en méthodes paramétriques :  méthode du maximum de vraissemblance, méthode des fonctions d'inférence des marginales; et méthodes semi-paramétriques : méthode de pseudo-maximum de vraisemblance, méthode des moments. A ces méthodes, on peut ajouter la méthode de la distance minimale.\\ 
+
+On note $\beta$ le vecteurs des paramètres de la Copule, $F_b, F_c, F_p$ les marges de densité $f_b, f_c, f_p$ et de vecteurs de paramètres paramètres respectifs $\theta_b, \theta_c, \theta_p$. On note  $x_1, ..., x_n$ les vecteurs de dimension 3,  représentant les sévérités des sinistres observés sur les garanties pour les biens, pour les bâtiments et pour les pertes d'exploitation.   
+\begin{enumerate}
+\item \underline{La méthode du maximum de vraisemblance exact}
+Les paramètres sont obtenus en maximisant la vraisemblance : 
+\begin{align*}
+\mathcal{L}\left( \beta, \theta_b, \theta_c, \theta_p, x_1, .., x_n \right)=\prod_{i=1}^nc\left(F_b(x_{b,i}\,, \theta_b), F_c(x_{c,i}\,, \theta_c), F_p(x_{p,i}\,,\theta_p), \beta \right)\\.f_b(x_{b,i}\,, \theta_1)f_c(x_{c,i}\,, \theta_2)f_p(x_{p,i}\,, \theta_3)
+\end{align*}
+
+\item \underline{La méthode  d'inférence des marginales (IFM)}
+On estime dans dans un premier temps les paramètres $\theta$ des lois marginales (maximum de vraisemblance). On transforme l'échantillon des pertes en uniformes :
+\begin{equation*}
+\widehat{u}_i=\left(\widehat{u}_{b,i}, \widehat{u}_{c,i}, \widehat{u}_{p,i} \right)=\left(F_b(x_{c,i}\,, \widehat{\theta_b}),F_c(x_{c,i}\,, \widehat{\theta_c}), F_p(x_{p,i}\,,\widehat{\theta_p}) \right)
+\end{equation*}
+Puis on maximise la vraisemblance :
+\begin{equation*}
+\mathcal{L}\left( \beta, \widehat{u}_1 ..., \widehat{u}_n  \right)=\prod_{i=1}^nc\left(\widehat{u}_{b,i}, \widehat{u}_{c,i}, \widehat{u}_{p,i} , \beta \right)
+\end{equation*}
+
+
+\item \underline{La méthode du maximum de vraisemblance canonique} 
+C'est une méthode non-paramétrique. Les étapes sont les même que la méthode IFM à la différence près que le pseudo échantillon d'uniformes est obtenu à l'aide des fonction de répartition empiriques :
+\begin{equation*}
+\widehat{u}_i=\left(\widehat{u}_{b,i}, \widehat{u}_{c,i}, \widehat{u}_{p,i} \right)=\left(\frac{\operatorname{rang}(x_{b,i})}{n},\frac{\operatorname{rang}(x_{c,i})}{n}, \frac{\operatorname{rang}(x_{p,i})}{n} \right)
+\end{equation*}
+
+
+
+\item \underline{La méthode d'inversion du tau du Kendall et du rho de Spearman }
+
+Similairement à la méthodes des moments, les paramètres de la copule sont estimé en égalant les moment théoriques et empiriques du tau de Kendall $\tau$ \ref{tau_K} ou du rho de Spearman $\rho_S$ \ref{rho_s}. 
+\item \underline{La méthode de la distance minimale }
+\end{enumerate}
+
+On choisit d'utiliser les 3 dernières méthodes afin de comparer leur résultats. On n'utilisera pas la première méthode qui nécessite d'effectuer l'optimisation sur l'espace entier des paramètres.
+
+\subsection{Résultats et comparaison}
+
+La visualisation des dépendogramme  \ref{depend_xy} \ref{depend_xz} \ref{depend_yz} pour les différents couple de garanties ainsi que le calcul des coefficient de queue \ref{dep_queue}, nous indique la présence de dépendance de queue supérieur et l'absence de dépendance de queue supérieur. Les dépendogramme nous indique également l'absence de symétrie. On est donc tenter de vouloir calibrer une Copule de Gumbel.  Malgré sa symétrie, nous choisissons également de calibrer une copule de Student afin de pouvoir comparer les résultats. Enfin nous calibrerons une copule gaussienne malgré son absence de queue et sa symétrie.   
+
+
+\subsubsection{Copule de Student}
+%\underline{Méthode CML}
+
+\begin{table}[ht!]
+\caption{Estimation des paramètres de la copule de Student }
+\centering
+\begin{tabular}{l|cc|cc}
+  \hline
+  & \multicolumn{2}{c|}{Méthode CML} &\multicolumn{2}{c}{Méthode IFM}\\
+  \hline
+  & Coefficient &  écart type& Coefficient &  écart type \\ 
+  \hline
+rho1 & -0,262 & 0,024& 0,244 & 0,024 \\ 
+  rho2  & 0,082    &  0,025& -0,100    &  0,026 \\ 
+  rho3 & -0,059    &  0,034& -0,149    &  0,033 \\ 
+  df    & 1,552& 0,066&  1,611& 0,071\\
+   \hline
+\end{tabular}
+\end{table}
+
+%\medskip
+
+%\underline{Méthode IFM}
+
+%\begin{table}[ht!]
+%\caption{paramètres de la copule de Student avec la méthode IFM}
+%\centering
+%\begin{tabular}{rrr}
+%  \hline
+%  & Coefficient &  écart type \\ 
+%  \hline
+%rho1 & 0,244 & 0,024 \\ 
+%  rho2  & -0,100    &  0,026 \\ 
+%  rho3 & -0,149    &  0,033 \\ 
+%  df    &  1,611& 0,071\\
+%   \hline
+%\end{tabular}
+%\end{table}   
+
+%\subsubsection{Méthode des moments}
+
+\subsubsection{Copule de Gumbel}
+
+\underline{Méthode CML}
+
+On trouve un paramètre $\alpha=1,058$ avec un écart type de $0,008$
+
+\underline{Méthode IFM}
+
+On trouve un paramètre $\alpha=1,029$ avec un écart type de $0,008$
+      
+%\underline{Méthode des moments}
+
+%On trouve un paramètre $\alpha=1.131$ avec un écart type de $0.014$
+
+\subsubsection{Copule Gaussienne}
+ 
+\begin{table}[ht!]
+\caption{Estimation des paramètres de la copule Gaussienne}
+\centering
+\begin{tabular}{l|cc|cc}
+  \hline
+  & \multicolumn{2}{c|}{Méthode CML} &\multicolumn{2}{c}{Méthode IFM}\\
+  \hline
+  & Coefficient &  écart type& Coefficient &  écart type \\ 
+  \hline
+rho1 & -0,075 & 0,029& -0,085 & 0,031 \\ 
+  rho2  & 0,054    &  0.029& -0,001     &  0,036 \\ 
+  rho3 & 0,481    &  0,018& 0,414    &  0,023 \\ 
+   \hline
+\end{tabular}
+\end{table} 
+ 
+%\underline{Méthode CML}       
+
+%\begin{table}[ht!]
+%\caption{paramètres de la copule Gaussienne avec la méthode CML}
+%\centering
+%\begin{tabular}{rrr}
+ % \hline
+%  & Coefficient &  écart type \\ 
+%  \hline
+%rho1 & -0,075 & 0,029 \\ 
+%  rho2  & 0,054    &  0.029 \\ 
+%  rho3 & 0,481    &  0,018 \\ 
+%   \hline
+%\end{tabular}
+%\end{table}
+
+%\underline{Méthode IFM}
+
+%\begin{table}[ht!]
+%\caption{paramètres de la copule Gaussienne avec la méthode CML}
+%\centering
+%\begin{tabular}{rrr}
+%  \hline
+%  & Coefficient &  écart type \\ 
+%  \hline
+%rho1 & -0,085 & 0,031 \\ 
+%  rho2  & -0,001     &  0,036 \\ 
+%  rho3 & 0,414    &  0,023 \\ 
+%   \hline
+%\end{tabular}
+%\end{table}    
+
+\subsection{Tests d'adéquation}
+
+On utilise un test d'adéquation pour vérifier que les copules utiliser modélisent correctement la dépendance entre les 3 garanties. Ce test consiste à comparer la copule calibrée à la copule empirique. On se référera Genest, Remillard et Beaudoin (2009) pour les détails techniques. 
+
+On obtient les p-valeurs suivantes : 
+
+\begin{table}[ht!]
+\caption{p-valeur du test d'adéquation}
+\centering
+\begin{tabular}{rrr}
+  \hline
+  & IFM &  CML \\ 
+  \hline
+Student &  &  \\ 
+ Gaussienne  &     &   \\ 
+  Gumbel &     &   \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Sélection de la Copule}
+
+
+\section{Modélisation de la fréquence annuelle de sinistres}
+
+Nous cherchons à modéliser la fréquence annuelles de sinistres. De ce fait, nous disposons que de 11 données, qui représentent les 11 années d'historique, pour calibrer une loi de comptage. Nous pourrions calibrer le nombre de sinistres de façon mensuel, pour ensuite se ramener à l'année, cependant on remarque que le nombre de sinistre est en moyenne légèrement supérieur entre le sixième et le huitième mois de l'année. Ceci pourrait s'expliquer par le fait que durant l'été, les incendies se propagent plus facilement. Une modélisation mensuel n'est donc pas adaptée. Nous nous efforçons de calibrer une loi de comptage sur nos 11 données.
+Nous remarquons également que le nombre de sinistres augmente singulièrement entre l'année 1984 et l'année 1985, ce qui pour s'expliquer simplement par un plus grand nombre de contrat. Nous ne prendrons pas en compte ce changement de niveau.  
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{freq_month.png}
+\caption{Fréquence mensuelle de sinistres}
+\label{freq_month}
+\end{center}
+\end{figure}
+\medskip
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{freq_year.png}
+\caption{fréquence annuelle de sinistres}
+\label{freq_year}
+\end{center}
+\end{figure}
+\medskip
+
+
+Le diagramme de cullen et Frey nous apporte peu d'information du fait du trop petit nombre de données. Les valeurs bootstrappées ne sont pas regroupées, ce qui nous permet pas d'identifier distinctement une loi. 
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{cullen_frey_freq.png}
+\caption{Diagramme de Cullen Frey pour la fréquence annuelle}
+\label{cullen_frey_freq}
+\end{center}
+\end{figure}
+\medskip
+
+
+Après calibration par maximum de vraisemblance, l'information BIC est plus faible pour une loi binomiale négative. Nous décidons donc de calibrer cette loi. Elle présente cependant le désavantage de posséder 2 paramètres à estimer. 
+
+
+\begin{table}[ht!]
+\caption{Critère BIC après calibration par maximum de vraisemblance}
+\centering
+\begin{tabular}{rrrr}
+  \hline
+  & Poisson &  Binomiale Négative & Géométrique \\ 
+  \hline
+BIC & 130,3  &   110,6     &140,7 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[ht!]
+\caption{Paramètres de la loi Binomial Négative}
+\centering
+\begin{tabular}{rrr}
+  \hline
+  & Coefficient &  Écart type \\ 
+  \hline
+n  &56 & 30\\
+$\mu$  & 197 &  9 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\medskip
+
+\section{Évaluation de la charge sinistre annuelle}
+
+Afin de modéliser la charge de sinistre annuelle, il faut générer le processus $\sum^{N_t}_{i=1} \left(X_{b,i}+X_{c,i}+X_{p,i} \right)$, où $X_b$, $X_c$ et $X_p$ sont les variables aléatoires de la sévérité des garanties bâtiments, biens et pertes d'exploitation. Du fait de la complexité du processus, utilisons la méthode par simulation pour estimer la fonction de répartition de la charge annuelle. Afin de pouvoir étudier les queues de la distribution, nous utilisons 100 000 simulations pour estimer la charge annuelle. Lorsque l'on ne s'intéresse pas aux queue, 10 000 semble suffisant. 
+
+\medskip
+
+Lorsque l'on suppose que les sévérité des différentes garanties est indépendantes, on peut simuler $\left(X_{b,i}+X_{c,i}+X_{p,i} \right)$ en tirant indépendamment 3 trois uniformes $U_i, V_i, W_i\sim \mathcal{U}_{[0 \,,\,1]}$, puis par la méthode d'inversion, $\left(X_{b,i}+X_{c,i}+X_{p,i} \right) = \left(F^{-1}_{b}(U_i)+F^{-1}_{c}(V_i)+F^{-1}_{p}(W_i) \right)$, où $F_b^{-1}$, $F_c^{-1}$ et $F_p^{-1}$ sont les inverses généralisées des fonctions de répartitions définies à la section 3. Dans les méthodes non paramétrique (notamment la méthode CML), $F^{-1}_j$ sera estimé à l'aide de la fonction quantile empirique. 
+
+\medskip
+
+Lorsqu'au contraire, on tient compte de la dépendance entre la sévérité des 3 garanties, on simule 3 uniformes à l'aide de la copule $C$, i.e telles que $\left(U_i, V_i, W_i\right)\sim C$, puis $\left(X_{b,i}+X_{c,i}+X_{p,i} \right) = \left(F^{-1}_{b}(U_i)+F^{-1}_{c,i}(V_i)+F^{-1}_{p,i}(W_i) \right)$
+
+\medskip
+$N$ est lui simulé selon une loi binomiale négative dont les paramètres ont été définis précédemment. 
+
+Les figures \ref{comp_charge_year} et \ref{comp_density_year} montrent que les fonctions de répartition  et les densités obtenues par les différentes méthodes ont des allures très proches.
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{comp_charge_annuelle.png}
+\caption{Comparaison de la fonction de la fonction de répartition de la charge annuelle, obtenue par différentes méthodes}
+\label{comp_charge_year}
+\end{center}
+\end{figure}
+\medskip
+
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{comp_density.png}
+\caption{Comparaison de la densité de la charge annuelle, obtenue par différentes méthodes}
+\label{comp_density_year}
+\end{center}
+\end{figure}
+\medskip
+La figure \ref{queue_distrib} montre que les queues de distributions obtenues par les méthodes non paramétriques sont systématiquement plus épaisses. Parmi les méthodes paramétrique, la queue de la distribution obtenues en utilisant une copule de Gumbel est la plus épaisse, ce qui n'est pas étonnant car c'est une copule extrême. 
+
+\medskip
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.8]{queue_distrib.png}
+\caption{Comparaison des queues de distribution }
+\label{queue_distrib}
+\end{center}
+\end{figure}
+\medskip
+
+
+\medskip
+Les moyenne obtenues par la différentes méthodes sont toutes très proches de celle observée sur les 11 années d'historique, qui est de 666,8 millions de couronnes danoises. Les quantiles obtenues avec les méthodes paramétriques sont systématiquement plus élevés que ceux obtenus par les méthodes non paramétrique. Ceci vient du fait que nous, avons modéliser les queues de distributions par des Pareto généralisées. Ce choix est donc prudent. Dans les deux type de méthodes, le quantile à 99,5\% pour est plus élevé lorsqu'on utilise des copule présentant de la dépendance de queue, ie la Copule de Student ou la Copule de Gumbel. Enfin, on remarque que la skewness et la kurtosis des distributions est beaucoup plus élevés avec les méthodes paramétrique.  
+
+
+
+
+
+
+\begin{table}[ht!]
+\caption{Quantiles et moments de la charge de sinistre annuelle par les méthodes non paramétriques}
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+  &Indépendance & Gumbel & Gaussienne& Student \\ 
+  \hline
+moyenne & 651,7 &  651,7   &651,0 & 651,8   \\ 
+   \hline
+ médiane  & 640,9& 639,5 &640,6& 637,9
+   \\ 
+   \hline 
+   quantile à 95\% &878,4 & 888,6& 876,6 & 895,5\\ 
+   \hline
+   quantile à 99,5\% & 1\,040,1 & 1\,068,8 & 1\,040,6 & 1\,087,0
+    \\ 
+   \hline
+  variance & 16\,513,4& 18\,020,0 &16\,915,3 &18\,956,8
+    \\ 
+   \hline
+skewness & 0,352 & 0,522 & 0,435 & 0,692  
+     \\ 
+   \hline
+   kurtosis & 3,86 & 4,46 & 4,16& 5,18
+   \\
+   \hline
+\end{tabular}
+\end{table}
+
+
+
+
+\begin{table}[ht!]
+\caption{Quantiles et moments de la charge de sinistre annuelle obtenue par les méthodes paramétriques}
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+  &Indépendance & Gumbel & Gaussienne& Student \\ 
+  \hline
+moyenne & 679,6 &  676,2   &  676,4 &  678.6  \\ 
+   \hline
+ médiane & 659,0& 654,4& 655,9& 651,2
+   \\ 
+   \hline 
+   quantile à 95\% & 928,7&  927,5& 920,4& 935,6 \\ 
+   \hline
+   quantile à 99,5\% &
+   1\,322,5 &1\,359,9&1\,339,3&1\,458,1 \\ 
+   \hline
+  variance & 10\,0687,5& 25\,7989,6 & 79\,512,33 & 12\,0635,8
+    \\ 
+   \hline
+skewness    & 21,61 & 26,98 & 18,76 & 20,84
+     \\ 
+   \hline
+   kurtosis & 596,4 & 806,7 & 486,7 & 561,6
+    \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+
+
+\newpage
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+Méthode paramétrique plus prudente
+
+Copule Gumbel bon choix : absence de symétrie, dépendance de queue supérieure, moyenne proche, prudente, ...
+
+Copule : modélisation plus fine
+
+\newpage
+\pagenumbering{Roman}
+\section*{}
+\addcontentsline{toc}{section}{Références bibliographiques}
+
+\begin{thebibliography}{1}
+
+\bibitem{nel} N. Nelsen . (1999).   {\em An Introduction to Copulas.}, volume 1. Springer.\\
+
+\bibitem{sklar} A. Sklar . (1959).   {\em Fonctions de répartition à n dimensions et leurs marges.}, Publications de l’Institut de Statistique de Paris, pages 229–231.\\
+
+\bibitem{gen} C.GENEST, R.J.MACKAY (1986).   {\em The joy of copulas: Bivariate distributions with uniform marginals.}, The American Statistician, 40, 280-283.\\
+
+\bibitem{gen} A.CHARPENTIER (2014).   {\em Computational Actuarial Science with R.}\\
+
+\bibitem{gen} R.DE MATTEIS (2001).   {\em FITTING COPULAS TO DATA}, Diploma thesis
+Institute of Mathematics of the
+University of Zurich\\
+
+\bibitem{gen} F.SCHMID, R.SCHMIDT R. (2007).{\em Multivariate conditional versions of Spearman's rho and related measures of tail dependence}. Journal of Multivariate Analysis 98, 1123–1140 \\
+
+\bibitem{gen} D.CADOUC, J-M.LOIZEAU {\em Copules  et  dépendances  :  application  pratique  à  la  détermination  du  besoin  en  fonds  
+propres d’un assureur non vie }\\
+
+\bibitem{gen}C.DUTANG,
+V.GOULET,
+M.PIGEON,{\em actuar: An R Package for Actuarial Science}, Journal of Statistical Software, March 2008, Volume 25, Issue 7.\\
+
+\bibitem{plan} F. PLANCHET (2010), {\em Dépendance stochastique: Introduction à la théorie des copules}, Support de cours 2010-2011, Version 2.7.\\
+
+\bibitem{xu} H. Joe, J.J. Xu.  (1996), {\em The estimation method of inference functions for
+margins for multivariate models}, Technical Report 166, Department of Statistics,University of British Columbia.\\
+
+\bibitem{xi} S.X.Chen, T.M.Huang.(2007), {\em Nonparametric estimation of copula functions for dependence modelling}, Canad.J. Statist. 35.\\
+
+
+\end{thebibliography}
+\newpage
+
+\section*{Annexes}
+\addcontentsline{toc}{section}{Annexes}
+
+\subsection*{Présentation détaillée des méthodes d'estimation des copules}
+Soit donné une copule paramétrique multivariée $C_\theta$ de paramètre $\theta$. Considérons les hypothèses suivantes:
+\begin{itemize}
+\item[$\bullet$]  $H_0$: $C$ $\in$ $C_0$ ;
+\item[$\bullet$]  $H_1$: $F_1 \in \mathcal{F}_1$,...,$F_k \in \mathcal{F}_k$ ; 
+\end{itemize}
+$C_0 = (C_\theta, \theta \in \Theta )$, où $\Theta$ est l'espace des paramètres (c'est un sous ensemble de $\mathbb{R}^p$, $p \geq 1$).\\
+$F_j, \hspace{0.2cm} j=1,...,k$ sont les marginales des variables $U_1,...,U_k$.
+\subsubsection*{Méthode du maximum de vraisemblance}
+
+Le paramètre de la copule est obtenu en maximisant la  log-vraisemblance définie par : 
+$$
+\begin{array}{ccl}
+l(\theta) & = & \sum \limits_{i=1}^n \log f(u_i)  \\
+ & = & \displaystyle \sum \limits_{i=1}^n \log c_\theta[F_1(u_{i1}),...,F_k(u_{ik})]\prod_{j=1}^kf_j(u_j)  \\
+ & = &\displaystyle \sum \limits_{i=1}^n \log c_\theta[F_1(u_{i1}),...,F_k(u_{ik})] + \displaystyle \sum \limits_{i=1}^n \displaystyle \sum \limits_{j=1}^k \log f_i(u_j)       
+\end{array}
+$$
+$$\hat\theta_n = Argmax \hspace{0.1cm} l(\theta)$$
+$\hat\theta_n$ est consistant et asymptotiquement normal. 
+$$
+\sqrt{n}(\hat\theta_n - \theta)\rightsquigarrow \mathcal{N}[0,I^{-1}(\theta)] 
+$$
+Où $I(\theta)$ est la matrice d'information de fisher.
+\subsubsection*{Méthode des fonctions d'inférence des marginales}
+Cette méthode consiste à maximimiser la log-vraisemblance en séparant les paramètres de distributions marginales 
+j et les paramètres de dépendance. Joe et Xu (1996)
+propose d'estimer le paramètre de la copule en deux étapes : 
+\begin{itemize}
+\item[$\bullet$]  Tout d'abord on estime les parmètres des distributions marginales univariées définies par $\hat\gamma_j$ = Argmax $l_j(\gamma_j)$. Avec $l_j(\gamma_j) = \sum \limits_{i=1}^n \log f_j(u_{ij})$ et $f_j$ la densité de $F_j$ ;
+\item[$\bullet$]  On estime ensuite le paramètre de la copule en utlisant les estimateurs $\hat\gamma_j$ obtenues ; 
+$$
+\hat\theta_n = Argmax\hspace{0.1cm} l(\theta)
+$$
+$l(\theta) = \displaystyle \sum \limits_{i=1}^n \log c_\theta[ F_{\hat\gamma_1}(u_{i1}),...,F_{\hat\gamma_k}(u_{ik})] $ 
+\end{itemize}
+
+\subsubsection*{Méthode de pseudo-maximum de vraisemblance}
+Encore appelée maximum de vraissemblance canonique, cette méthode est utilisée lorsque les marginales $F_1,...,F_k$ sont inconnues. Elle comprend deux étapes:
+\begin{itemize}
+\item[$\bullet$]  Dans un premier temps on remplace les marginales $F_1,...,F_k$ par leurs estimations  définies par : $\hat{F}_{i,n}(u_{ij}) = \dfrac{1}{n}\displaystyle \sum \limits_{j=1}^n \mathrm{1}_{(U_{ij} \leq u)}$ ;
+\item[$\bullet$]  On calcule ensuite la pseudo log-vraissemblance définit par: $l(\theta) = \displaystyle \sum \limits_{j=1}^n \log c_\theta[ \hat{F}_{j,1}(u_{j1}),...\hat{F}_{j,n}(u_{jk})] $ ;
+$$\hat\theta_n = Argmax \hspace{0.1cm} l(\theta)$$
+\end{itemize}
+
+\subsubsection*{Méthode d'inversion du tau du Kendall et du rho de
+Spearman}
+Soit donné un couple (U,V) de copule notée $C_\theta$ de paramètre $\theta$.  L'essence de cette méthode réside dans le fait qu'il existe une relation entre ces mesures d'association et le paramètre de dépendance de la copule.
+\paragraph{Estimateur de $\theta$  basé sur le rho de Spearman\\}
+Supposons que le rho de Spearman se définisse comme une fonction de $\theta$ : Soit $\rho(U,V) = g(\theta)$. Avec g une fonction de classe $C^1$. \\
+L'estimateur de $\theta$ est donné par: $\hat\theta_n = h^{-1}(\rho_n)$, avec $\rho_n$ l'estimateur empirique de $\rho$. L'une des propriétés remarquables de cet estimateur est sa normalité asymptotique.
+
+\paragraph{Estimateur de $\theta$  basé sur le tau de Kendall\\}
+ Supposons que la relation entre le tau de Kendall et le paramètre $\theta$ soit définie par: $\tau(U,V) = h(\theta)$. Avec h une fonction de classe $C^1$. \\
+L'estimateur de $\theta$ est donné par: $\hat\theta_n = g^{-1}(\tau_n)$, avec $\tau_n$ l'estimateur empirique de $\tau$. Ici aussi, l'une des propriétés remarquables de cet estimateur est sa normalité asymptotique.
+\subsubsection*{Méthode de la distance minimale}
+Trois types d'estimateurs sont liés à cette méthode:
+\paragraph{Estimateurs basés sur le processus de copule empirique\\}
+Les différentes étapes de l'estimation sont les suivantes:
+\begin{itemize}
+\item[$\bullet$]  Calcul du processus empirique défini par $\mathtt{C}_n = \sqrt{n}(C_n - C_{\hat{\theta}})$; où $C_n$ représente la copule de Deheuvels et $C_{\hat{\theta}}$ défini par l'hypothèse $H_0$ ci-dessus.
+\item[$\bullet$] Calcul des statistiques de Cramer-Von-Mises, Kolmogorov-Smirnov et $L_1$\footnote{variante de Cramer-Von-Mises}, définies respectivement par :
+$$
+\begin{array}{ccl}
+D^{CVM}_{emp} & = & \displaystyle{\int_{I^2}}\mathtt{C}_n(x)^2~\textrm{d}\mathtt{C}_n(x)  \\
+D^{KS}_{emp} & = & Sup_{x \in [0,1]^2}|\mathtt{C}_n(x)|  \\
+D^{L_1}_{emp} & = & \sqrt{n}\displaystyle{\int_{I^2}}|\mathtt{C}_n(x)|~\textrm{d}\mathtt{C}_n(x)         
+\end{array}
+$$
+\item[$\bullet$] Les estimateurs de la distance minimale sont ensuite obtenus en minimisant les statistiques sus-énumérées.
+
+\end{itemize}
+\paragraph{Estimateurs basés sur la fonction de dépendance de Kendall\\}
+Les différentes étapes de l'estimation sont les suivantes:
+\begin{itemize}
+\item[$\bullet$]  Estimation non paramétrique de la fonction de répartition jointe définie par :\\ 
+$K_n(w) = \dfrac{1}{n}\displaystyle \sum \limits_{i=1}^n \mathrm{1}_{(V_i \leq w)}$, $w \in [0,1]^2$\\
+On définit ensuite le processus empirique par: $\mathtt{K}_n = \sqrt{n}(K_n - K_{\hat\theta})$
+
+\item[$\bullet$] Calcul des statistiques de Cramer-Von-Mises, Kolmogorov-Smirnov et $L_1$, définies respectivement par :
+$$
+\begin{array}{ccl}
+D^{CVM}_{K} & = & \displaystyle{\int_{0}^1}\mathtt{K}_n(w)^2~\textrm{d}\mathtt{K}_{\hat\theta}(w)  \\
+D^{KS}_{K} & = & Sup_{w \in [0,1]}|\mathtt{K}_n(w)|  \\
+D^{L_1}_{K} & = & \sqrt{n}\displaystyle{\int_{0}^1}|\mathtt{K}_n(w)|~\textrm{d}\mathtt{K}_{\hat\theta}(w)         
+\end{array}
+$$
+\item[$\bullet$] Les estimateurs de la distance minimale sont ensuite obtenus en minimisant les statistiques sus-énumérées.
+
+\end{itemize}
+
+\end{document}
