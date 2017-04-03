@@ -1,0 +1,93 @@
+#===============================================================================#
+#=============             PROJET : Actuariat sous               ===============#
+#============= THEME : Tarification des contrats multi-garanties ===============#
+#=============    Etudiants : François TCHANGAÏ, Ulrich MPELI    ===============#
+#=============               Enseignant : C DUTANG               ===============#
+#========================= ENSAE PARISTECH, 2016-2017 ==========================#
+
+# ------------------------------------------------------------------------------#
+# PREAMBULE
+# ------------------------------------------------------------------------------#
+
+rm(list=ls())
+cat("\014") 
+
+# ------------------------------------------------------------------------------#
+# Installation des packages
+# ------------------------------------------------------------------------------#
+
+install.packages("CASdatasets", repos = "http://dutangc.free.fr/pub/RRepos/", 
+                 type="source")
+install.packages(fitdistrplus)
+install.packages(copula)
+install.packages(MASS)
+install.packages(reliaR)
+install.packages(QRM)
+install.packages(xtable)
+install.packages(psych)
+install.packages(gamlss)
+install.packages(pscl)
+install.packages(xtable)
+
+# ------------------------------------------------------------------------------#
+# Chargement des packages
+# ------------------------------------------------------------------------------#
+
+library(CASdatasets)
+library(fitdistrplus)
+library(copula)
+library(MASS)
+library(reliaR)
+library(QRM)
+library(xtable)
+library(psych)
+library(gamlss)
+library(pscl)
+library(xtable)
+
+# ------------------------------------------------------------------------------#
+# Chargement de de la base de données
+# ------------------------------------------------------------------------------#
+
+data(danishmulti)
+data = danishmulti
+
+# ------------------------------------------------------------------------------#
+# Analyse exploratoire des données
+# ------------------------------------------------------------------------------#
+
+#== Nombre et montant des sinistres par année de survenance ==#
+
+str(data$Date)
+data$annee=format(data$Date, format = "%Y")
+tab1=table(data$annee)
+tab2=aggregate(data$Total,list(Annee = data$annee),sum)
+
+xtable(tab1)
+xtable(tab2)
+
+#== Analyse du montant des sinistres suivant les garanties ==#
+
+summary(data$Building)
+sum(data$Building)
+quantile(data$Building, c(.995, .999))
+sum(data$Building!=0)/2167
+
+summary(data$Contents)
+sum(data$Contents)
+quantile(data$Contents, c(.995, .999))
+sum(data$Contents!=0)/2167
+
+summary(data$Profits)
+sum(data$Profits)
+quantile(data$Profits, c(.995, .999))
+sum(data$Profits!=0)/2167
+
+#== Analyse des queues de distribution ==#
+
+# Quantiles à 99,5% et 99,9% #
+quantile(data$Total, c(.95, .999))
+
+# Sélection des plus gros sinistres #
+
+data1 = data[data$Total>=34.823731,]
